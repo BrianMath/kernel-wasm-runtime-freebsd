@@ -1,0 +1,9 @@
+tracepoint:syscalls:sys_enter_openat
+{
+    @openat_count = count();
+}
+
+interval:s:5
+{
+    printf("openat count (so far): %d\n", @openat_count);
+}

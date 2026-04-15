@@ -1,0 +1,6 @@
+#!/usr/bin/env bpftrace
+
+kprobe:__x64_sys_mkdirat
+{
+    printf("mkdir called by PID %d (%s): %s\n", pid, comm, str(arg1));
+}
