@@ -4,6 +4,7 @@
 //  Created by Steven Massey on 4/17/19.
 //  Copyright © 2019 Steven Massey. All rights reserved.
 
+#include "compat_kernel.h"
 
 #ifndef m3_exec_h
 #define m3_exec_h
@@ -33,9 +34,9 @@
 #include "m3_exec_defs.h"
 
 
-#include <linux/limits.h>
-#include <linux/string.h>
-#include <linux/kernel.h> // ModForKernel: we have snprintf in kernel
+// #include <linux/limits.h>
+// #include <linux/string.h>
+// #include <linux/kernel.h> // ModForKernel: we have snprintf in kernel
 
 d_m3BeginExternC
 

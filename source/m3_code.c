@@ -5,11 +5,7 @@
 //  Copyright © 2019 Steven Massey. All rights reserved.
 //
 
-// #include <linux/limits.h>
-#include <limits.h>
-// #include <linux/string.h>
-#include <string.h>
-
+#include "compat_kernel.h"
 #include "m3_code.h"
 #include "m3_env.h"
 

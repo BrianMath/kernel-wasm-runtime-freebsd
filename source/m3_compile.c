@@ -4,7 +4,7 @@
 //  Created by Steven Massey on 4/17/19.
 //  Copyright © 2019 Steven Massey. All rights reserved.
 //
-
+#include "compat_kernel.h"
 // Allow using opcodes for compilation process
 #define M3_COMPILE_OPCODES
 
@@ -26,7 +26,6 @@
 #include "m3_exception.h"
 #include "m3_info.h"
 
-// #include <linux/printk.h>
 
 //----- EMIT --------------------------------------------------------------------------------------------------------------
 
@@ -786,6 +785,7 @@ M3Result  EmitSlotNumOfStackTopAndPop  (IM3Compilation o)
 
 
 // Or, maybe: EmitTrappingOp
+static
 M3Result  AddTrapRecord  (IM3Compilation o)
 {
     M3Result result = m3Err_none;

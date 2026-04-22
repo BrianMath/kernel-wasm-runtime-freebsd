@@ -7,16 +7,16 @@
 #include <sys/kernel.h> /* types used in module initialization */
 
 static int
-tracer_loader(struct module *m, int what, void *arg)
+wasmodule_loader(struct module *m, int what, void *arg)
 {
 	int err = 0;
 
 	switch (what) {
 	case MOD_LOAD:                /* kldload */
-		uprintf("Tracer KLD loaded.\n");
+		uprintf("Wasmodule KLD loaded.\n");
 		break;
 	case MOD_UNLOAD:
-		uprintf("Tracer KLD unloaded.\n");
+		uprintf("Wasmodule KLD unloaded.\n");
 		break;
 	default:
 		err = EOPNOTSUPP;
@@ -27,11 +27,11 @@ tracer_loader(struct module *m, int what, void *arg)
 
 /* Declare this module to the rest of the kernel */
 
-static moduledata_t tracer_mod = {
-	"tracer",
-	tracer_loader,
+static moduledata_t wasmodule_mod = {
+	"wasmodule",
+	wasmodule_loader,
 	NULL
 };
 
-DECLARE_MODULE(tracer, tracer_mod, SI_SUB_KLD, SI_ORDER_ANY);
+DECLARE_MODULE(wasmodule, wasmodule_mod, SI_SUB_KLD, SI_ORDER_ANY);
 

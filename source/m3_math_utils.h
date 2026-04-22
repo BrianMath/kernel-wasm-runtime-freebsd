@@ -13,7 +13,7 @@
 #include "m3_core.h"
 
 // #include <linux/limits.h>
-#include <limits.h>
+// #include <limits.h>
 
 #if defined(M3_COMPILER_MSVC)
 

@@ -5,11 +5,11 @@
 //  Copyright © 2019 Steven Massey. All rights reserved.
 //
 
-// #include <linux/string.h>
-#include <string.h>
+#include "compat_kernel.h"
 #include "m3_env.h"
 #include "m3_exception.h"
 #include "m3_info.h"
+#include "m3_bind.h"
 
 
 u8  ConvertTypeCharToTypeId (char i_code)
@@ -121,7 +121,7 @@ _   (SignatureToFuncType (& ftype, i_linkingSignature));
     return result;
 }
 
-
+static
 M3Result  FindAndLinkFunction      (IM3Module       io_module,
                                     ccstr_t         i_moduleName,
                                     ccstr_t         i_functionName,
