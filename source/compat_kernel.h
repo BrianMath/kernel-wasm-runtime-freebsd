@@ -9,5 +9,9 @@
 #include <sys/module.h>
 #include <sys/kernel.h>
 #include <sys/malloc.h>
+#include <sys/limits.h>
+#include <sys/stdint.h>
+#include <sys/time.h>
+#include <machine/stdarg.h> // <sys/stdarg.h> não existe nesta versão do FreeBSD
 
 #endif

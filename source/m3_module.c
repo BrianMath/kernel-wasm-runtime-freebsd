@@ -5,10 +5,10 @@
 //  Copyright © 2019 Steven Massey. All rights reserved.
 //
 
+#include "compat_kernel.h"
+
 #include "m3_env.h"
 #include "m3_exception.h"
-
-// #include <linux/printk.h>
 #include "m3_core.h"
 
 void Module_FreeFunctions (IM3Module i_module)

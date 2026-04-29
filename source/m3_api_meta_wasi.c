@@ -6,7 +6,6 @@
 //
 
 #include "m3_api_wasi.h"
-
 #include "m3_env.h"
 #include "m3_exception.h"
 

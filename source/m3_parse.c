@@ -5,23 +5,12 @@
 //  Copyright © 2019 Steven Massey. All rights reserved.
 //
 
-//OLD include
-//include "m3_env.h"
-//#include "m3_compile.h"
-//#include "m3_exception.h"
-//#include "m3_info.h"
+#include "compat_kernel.h"
 
-
-//TODO: new include
 #include "wasm3.h"
 #include "m3_exception.h"
 #include "m3_env.h"
 //#include "m3_core.h"
-
-// #include <linux/string.h>
-#include <string.h>
-// #include <linux/printk.h> /* Needed for pr_info() */
-
 
 M3Result  ParseType_Table  (IM3Module io_module, bytes_t i_bytes, cbytes_t i_end)
 {

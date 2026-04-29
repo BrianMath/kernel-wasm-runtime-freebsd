@@ -5,25 +5,12 @@
 //  Copyright © 2019 Steven Massey. All rights reserved.
 //
 
-//#include <stdarg.h>
-//#include <limits.h>
-//
-// #include <linux/stdarg.h>
-#include <stdarg.h>
-// #include <linux/limits.h>
-#include <limits.h>
-// #include <linux/string.h>
-#include <string.h>
-// #include <linux/kernel.h>
-#include <sys/kernel.h>
+#include "compat_kernel.h"
 
 #ifdef __aarch64__
     #undef and
     #undef or
 #endif
-
-#include <linux/slab.h> /* Needed for memory management, e.g., kfree, kmalloc */
-// @@@@@@@@@ Não sei o que colocar no lugar
 
 #ifdef __aarch64__
     #define and &&
@@ -755,7 +742,7 @@ M3Result  m3_FindFunction  (IM3Function * o_function, IM3Runtime i_runtime, cons
     IM3Function function = NULL;
 
     if (not i_runtime->modules) {
-        pr_info("NO MODULES LOADED!!\n");
+		printf("NO MODULES LOADED!!\n");
         _throw ("no modules loaded");
     }
 
@@ -984,31 +971,56 @@ _   (checkStartFunction(i_function->module))
     {
         switch (d_FuncArgType(ftype, i)) {
         //case c_m3Type_i32: *(i32*)(s) = strtoul(i_argv[i], NULL, 10); s += 8; break;
-        case c_m3Type_i32: 
+        /* case c_m3Type_i32: 
         {
             // ModForKernel: compatable with kstrtoul function in kernel 
-            unsigned long * t = kmalloc(sizeof(unsigned long), GFP_KERNEL);
+            // unsigned long * t = kmalloc(sizeof(unsigned long), GFP_KERNEL);
             if(kstrtoul((i_argv[i]), 10, t) == 0)
             {
                 *(i32*)(s) = *t; 
             }
-            else pr_info("Failed\n");
+            else printf("Failed\n");
             s += 8; 
             break;
-        }
+        } */
+		case c_m3Type_i32:
+		{
+			char *endptr;
+			unsigned long val = strtoul(i_argv[i], &endptr, 10);
+			if (endptr == i_argv[i] || *endptr != '\0') {
+				printf("Failed to parse '%s' as integer\n", i_argv[i]);
+			} else {
+				*(i32*)(s) = (i32)val;
+			}
+			s += 8;
+			break;
+		}
         //case c_m3Type_i64: pr_info("i64\n"); *(i64*)(s) = kstrtoull(i_argv[i], NULL, 10); pr_info("ks\n"); s += 8; break;
-        case c_m3Type_i64: 
+        /* case c_m3Type_i64: 
         {
             // ModForKernel: compatable with kstrtoul function in kernel 
-            unsigned long * t = kmalloc(sizeof(unsigned long), GFP_KERNEL);
+            // unsigned long * t = kmalloc(sizeof(unsigned long), GFP_KERNEL);
+			unsigned long * t = malloc(sizeof(unsigned long), M_WASM3, M_WAITOK);
             if(kstrtoul((i_argv[i]), 10, t) == 0)
             {
                 *(i64*)(s) = *t; 
             }
-            else pr_info("Failed\n");
+            else printf("Failed\n");
             s += 8; 
             break;
-        }
+        } */
+		case c_m3Type_i64:
+		{
+			char *endptr;
+			unsigned long val = strtoul(i_argv[i], &endptr, 10);
+			if (endptr == i_argv[i] || *endptr != '\0') {
+				printf("Failed to parse '%s' as integer\n", i_argv[i]);
+			} else {
+				*(i64*)(s) = (i64)val;
+			}
+			s += 8;
+			break;
+		}
 # if d_m3HasFloat
         case c_m3Type_f32:  *(f32*)(s) = strtod(i_argv[i], NULL);       s += 8; break;  // strtof would be less portable
         case c_m3Type_f64:  *(f64*)(s) = strtod(i_argv[i], NULL);       s += 8; break;

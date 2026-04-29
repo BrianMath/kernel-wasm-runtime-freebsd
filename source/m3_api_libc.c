@@ -5,19 +5,17 @@
 //  Copyright © 2019 Volodymyr Shymanskyy. All rights reserved.
 //
 
+#include "compat_kernel.h"
+
 #define _POSIX_C_SOURCE 200809L
 
 #include "m3_api_libc.h"
-
 #include "m3_env.h"
 #include "m3_exception.h"
 
 //#include <time.h>
 //#include <errno.h>
 //#include <stdio.h>
-
-// #include <linux/string.h>
-#include <string.h>
 
 typedef uint32_t wasm_ptr_t;
 typedef uint32_t wasm_size_t;

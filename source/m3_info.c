@@ -5,6 +5,8 @@
 //  Copyright © 2019 Steven Massey. All rights reserved.
 //
 
+#include "compat_kernel.h"
+
 #include "m3_env.h"
 #include "m3_info.h"
 #include "m3_compile.h"
@@ -13,9 +15,6 @@
     #undef and
     #undef or
 #endif
-
-// #include <linux/kernel.h> // ModForKernel: we have snprintf in kernel
-#include <sys/kernel.h>
 
 #ifdef __aarch64__
     #define and &&

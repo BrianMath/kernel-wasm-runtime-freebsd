@@ -5,6 +5,8 @@
 //  Copyright © 2020 Colin J. Ihrig, Volodymyr Shymanskyy. All rights reserved.
 //
 
+#include "compat_kernel.h"
+
 #define _POSIX_C_SOURCE 200809L
 
 #include "m3_api_wasi.h"
@@ -13,9 +15,6 @@
 #include "m3_exception.h"
 
 #if defined(d_m3HasUVWASI)
-
-#include <stdio.h>
-#include <string.h>
 
 #ifdef __APPLE__
 # include <crt_externs.h>

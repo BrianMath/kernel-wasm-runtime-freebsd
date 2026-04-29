@@ -5,22 +5,19 @@
 //  Copyright © 2019 Volodymyr Shymanskyy. All rights reserved.
 //
 
+#include "compat_kernel.h"
+
 #define _POSIX_C_SOURCE 200809L
 
 #include "m3_api_kernel.h"
-
 #include "m3_exception.h"
 
-// #include <linux/printk.h>
-// #include <linux/string.h>
-#include <string.h>
 
 #ifdef __aarch64__
     #undef and
     #undef or
 #endif
 
-// #include <linux/ktime.h>
 #include <sys/callout.h>
 
 #ifdef __aarch64__
@@ -92,11 +89,11 @@ m3ApiRawFunction(m3_kernel_get_addr)
 
     *addr = (void*)&testA;
 
-    pr_info("Add A: %p\n", &testA);
-    pr_info("Add a: %p\n", *addr);
+    printf("Add A: %p\n", &testA);
+    printf("Add a: %p\n", *addr);
 
-    pr_info("Val A: %d\n", *(&testA));
-    pr_info("Val a: %d\n", *((int*) (*addr)));
+    printf("Val A: %d\n", *(&testA));
+    printf("Val a: %d\n", *((int*) (*addr)));
 
     m3ApiReturn(addr);
 }
@@ -107,15 +104,15 @@ m3ApiRawFunction(m3_kernel_resolve_addr)
     
     m3ApiGetArgMem  (void**,     addr);
 
-    pr_info("Resolve add: %p\n", *addr);
+    printf("Resolve add: %p\n", *addr);
 
     if(*addr == &testA)
     {
-        pr_info("Yay\n");
-        pr_info("Resolved Val: %d\n", *((int*)*addr));
+        printf("Yay\n");
+        printf("Resolved Val: %d\n", *((int*)*addr));
     }
     else
-        pr_info("Nah\n");
+        printf("Nah\n");
 
     m3ApiReturn(0);
 }
@@ -160,7 +157,7 @@ m3ApiRawFunction(m3_kernel_pr_str)
     size_t len = strlen(i_str) + 1; // for '\0'
     m3ApiCheckMem(i_str, strlen(i_str)+1);
 
-    pr_info("%s",i_str);
+    printf("%s",i_str);
 
     m3ApiReturn(len);
 }
@@ -170,7 +167,7 @@ m3ApiRawFunction(m3_kernel_pr_int)
     m3ApiReturnType(uint32_t);
     m3ApiGetArg(int, i);
 
-    pr_info("%d\n", i);
+    printf("%d\n", i);
 
     m3ApiReturn(i);
 }
@@ -185,7 +182,7 @@ m3ApiRawFunction(m3_kernel_pr_info)
     size_t len = strlen(i_str) + 1;
     m3ApiCheckMem(i_str, len);
 
-    pr_info("%s: %d",i_str, arg);
+    printf("%s: %d",i_str, arg);
 
     m3ApiReturn(len);
 }
@@ -196,7 +193,7 @@ m3ApiRawFunction(m3_kernel_pr_ptr)
 
     m3ApiCheckMem(ptr, sizeof(char));
     
-    pr_info("pr_ptr: %p", ptr);
+    printf("pr_ptr: %p", ptr);
     
     m3ApiSuccess();
 }
@@ -205,7 +202,9 @@ m3ApiRawFunction(m3_kernel_time)
 {
     m3ApiReturnType(uint64_t);
 
-    uint64_t t = ktime_get_raw_ns()/1000; //us
+	struct timespec ts;
+	nanouptime(&ts);
+    uint64_t t = ((uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec) / 1000; // µs
 
     m3ApiReturn(t);
 }

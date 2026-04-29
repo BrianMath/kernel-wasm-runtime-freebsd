@@ -5,6 +5,8 @@
 //  Copyright © 2019 Steven Massey. All rights reserved.
 //
 
+#include "compat_kernel.h"
+
 #define M3_IMPLEMENT_ERROR_STRINGS
 #include "m3_config.h"
 #include "wasm3.h"
@@ -12,16 +14,13 @@
 #include "m3_core.h"
 #include "m3_env.h"
 
-// #include <linux/string.h>
-#include <string.h>
+MALLOC_DECLARE(M_WASM3);
+MALLOC_DEFINE(M_WASM3, "wasm3", "wasm3 runtime memory");
 
 #ifdef __aarch64__
     #undef and
     #undef or
 #endif
-
-#include <linux/slab.h> /* Needed for memory management, e.g., kfree, kmalloc */
-// @@@@@@@@@ Não sei o que colocar no lugar
 
 #ifdef __aarch64__
     #define and &&
@@ -42,8 +41,6 @@ M3Result m3_Yield ()
 }
 
 #if d_m3LogTimestamps
-
-#include <time.h>
 
 #define SEC_TO_US(sec) ((sec)*1000000)
 #define NS_TO_US(ns)    ((ns)/1000)
@@ -142,12 +139,14 @@ void *  m3_Realloc_Impl  (void * i_ptr, size_t i_newSize, size_t i_oldSize)
 
 void *  m3_Malloc_Impl  (size_t i_size)
 {
-    return kcalloc (1, i_size, GFP_KERNEL);
+    // return kcalloc (1, i_size, GFP_KERNEL); 
+	return malloc(i_size, M_WASM3, M_WAITOK | M_ZERO); // M_ZERO porque calloc zera
 }
 
 void  m3_Free_Impl  (void * io_ptr)
 {
-    kfree (io_ptr);
+    // kfree (io_ptr);
+	free(io_ptr, M_WASM3);
 }
 
 void *  m3_Realloc_Impl  (void * i_ptr, size_t i_newSize, size_t i_oldSize)
@@ -155,7 +154,8 @@ void *  m3_Realloc_Impl  (void * i_ptr, size_t i_newSize, size_t i_oldSize)
     if (M3_UNLIKELY(i_newSize == i_oldSize)) return i_ptr;
 
     //void * newPtr = realloc (i_ptr, i_newSize);
-    void * newPtr = krealloc(i_ptr, i_newSize, GFP_KERNEL);// TODO: figure out how to set the flag
+    // void * newPtr = krealloc(i_ptr, i_newSize, GFP_KERNEL);// TODO: figure out how to set the flag
+	void * newPtr = realloc(i_ptr, i_newSize, M_WASM3, M_WAITOK);
 
     if (M3_LIKELY(newPtr))
     {

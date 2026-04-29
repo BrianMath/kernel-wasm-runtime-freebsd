@@ -5,10 +5,11 @@
 //  Copyright © 2019 Volodymyr Shymanskyy. All rights reserved.
 //
 
+#include "compat_kernel.h"
+
 #define _POSIX_C_SOURCE 200809L
 
 #include "m3_api_wasi.h"
-
 #include "m3_env.h"
 #include "m3_exception.h"
 
@@ -22,20 +23,6 @@
 #endif
 
 #include "extra/wasi_core.h"
-
-#include <sys/types.h>
-#include <sys/systm.h>  /* uprintf */
-#include <sys/errno.h>
-#include <sys/param.h>  /* defines used in kernel.h */
-#include <sys/module.h>
-#include <sys/kernel.h> /* types used in module initialization */
-
-/* #include <sys/types.h>
-#include <sys/stat.h>
-#include <time.h>
-#include <errno.h>
-#include <stdio.h>
-#include <fcntl.h> */
 
 #if defined(APE)
 // Actually Portable Executable
