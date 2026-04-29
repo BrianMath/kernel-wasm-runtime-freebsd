@@ -1,4 +1,0 @@
-SRCS = wasmodule.c 
-KMOD = wasmodule
-OBJS+= libwasm.a
-.include <bsd.kmod.mk>
