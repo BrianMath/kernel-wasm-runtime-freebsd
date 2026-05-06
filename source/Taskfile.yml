@@ -1,0 +1,25 @@
+version: '3'
+
+vars:
+  FUNCS_DIR: 'funcs'
+  TARGET: 'wasm32-unknown-unknown'
+  FLAGS: '--release --target {{.TARGET}}'
+
+tasks:
+  build *:
+    vars:
+      FUNC: '{{index .MATCH 0}}'
+    cmds:
+      - cd {{.FUNCS_DIR}}/{{.FUNC}} && cargo build {{.FLAGS}}
+  
+  header *:
+    vars:
+      FUNC: '{{index .MATCH 0}}'
+    cmds:
+      - cd {{.FUNCS_DIR}}/{{.FUNC}}/target/{{.TARGET}}/release && xxd -i {{.FUNC}}.wasm > ../../../../../{{.FUNC}}.h
+  
+  default:
+    desc: Print a greeting message
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
