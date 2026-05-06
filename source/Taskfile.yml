@@ -19,7 +19,6 @@ tasks:
       - cd {{.FUNCS_DIR}}/{{.FUNC}}/target/{{.TARGET}}/release && xxd -i {{.FUNC}}.wasm > ../../../../../{{.FUNC}}.h
   
   default:
-    desc: Print a greeting message
     cmds:
-      - echo "{{.GREETING}}"
+      - make
     silent: true
