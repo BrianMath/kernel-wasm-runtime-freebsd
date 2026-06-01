@@ -18,7 +18,18 @@ tasks:
     cmds:
       - cd {{.FUNCS_DIR}}/{{.FUNC}}/target/{{.TARGET}}/release && xxd -i {{.FUNC}}.wasm > ../../../../../{{.FUNC}}.h
   
+  load:
+    cmds:
+      - sudo make load
+    silent: true
+
+  unload:
+    cmds:
+      - sudo make unload
+    silent: true
+
   default:
     cmds:
+      - task unload
       - make
     silent: true

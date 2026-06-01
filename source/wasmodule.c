@@ -26,10 +26,10 @@ int loader() {
     M3Result result;
     // M3Result result2;
 
-    /* 2. Criar o ambiente Wasm3 */
+    /* 1. Create Wasm3 environment */
     IM3Environment env = m3_NewEnvironment();
     if (!env) {
-        printf("Erro ao criar o ambiente.\n");
+        printf("Error creating the environment.\n");
         return 1;
     }
 
@@ -39,10 +39,10 @@ int loader() {
     //     return 1;
     // }
 
-    /* 3. Criar o runtime. O segundo argumento é o tamanho da stack em bytes (ex: 8192) */
+    /* 2. Create runtime. The second argument is the stack size in bytes */
     IM3Runtime runtime = m3_NewRuntime(env, 8192, NULL);
     if (!runtime) {
-        printf("Erro ao criar o runtime.\n");
+        printf("Error creating the runtime.\n");
         m3_FreeEnvironment(env);
         return 1;
     }
@@ -54,12 +54,12 @@ int loader() {
     //     return 1;
     // }
 
-    /* 4. Fazer o parse do binário WebAssembly */
+    /* 3. Parse the WebAssembly binary */
     IM3Module module;
 
     result = m3_ParseModule(env, &module, add_wasm, add_wasm_len);
     if (result) {
-        printf("Erro no parse: %s\n", result);
+        printf("Parsing error: %s\n", result);
         m3_FreeRuntime(runtime);
         m3_FreeEnvironment(env);
         return 1;
@@ -74,15 +74,16 @@ int loader() {
     //     return 1;
     // }
 
-    /* 5. Carregar o módulo no runtime */
+    /* 4. Load the module in runtime */
     result = m3_LoadModule(runtime, module);
     if (result) {
-        printf("Erro ao carregar o módulo: %s\n", result);
+        printf("Error loading module: %s\n", result);
         m3_FreeRuntime(runtime);
         m3_FreeEnvironment(env);
         return 1;
     }
 
+    /* 5. Link the raw function in the module */
     result = m3_LinkRawFunction(module, "env", "sum_c", "i(ii)", &host_sum);
     if (result) {
         printf("Erro no link: %s\n", result);
@@ -99,21 +100,19 @@ int loader() {
     //     return 1;
     // }
 
-    /* 6. (Opcional) Localizar e executar uma função exportada pelo módulo */
+    /* 6. Find and call an exported module function */
     IM3Function func;
     result = m3_FindFunction(&func, runtime, "sum");
     if (!result) {
-        /* A função é chamada. m3_CallV aceita argumentos variáveis baseados na assinatura */
-		printf("chamando função\n");
+        /* The function is called. m3_CallV accepts variable arguments based on the function signature */
         result = m3_CallV(func, 25, 42);
         if (result) {
-            printf("Erro na execução da função: %s\n", result);
+            printf("Error calling the function: %s\n", result);
         } else {
-			int retorno;
-			printf("pegando resultado\n");
-			result = m3_GetResultsV(func, &retorno);
+			int func_return;
+			result = m3_GetResultsV(func, &func_return);
 			if (!result) {
-				printf("Soma = %d\n", retorno);
+				printf("Sum = %d\n", func_return);
 			}
 		}
     }
@@ -136,8 +135,8 @@ int loader() {
 	// 	}
     // }
 
-    /* 7. Liberar recursos alocados.
-       Nota: O módulo é liberado automaticamente quando o runtime ou environment é liberado. */
+    /* 7. Free allocated memory.
+       Note: The module is automatically freed when either the runtime or the environment are freed */
     m3_FreeRuntime(runtime);
     m3_FreeEnvironment(env);
 
@@ -154,17 +153,17 @@ wasmodule_loader(struct module *m, int what, void *arg)
 	int r;
 
 	switch (what) {
-	case MOD_LOAD:                /* kldload */
-		uprintf("Wasmodule KLD loaded.\n");
+	case MOD_LOAD:                // kldload
+		printf("=== Wasmodule KLD loaded ===\n");
 		r = loader();
 		if (r) {
-			printf("erro na execução\n");
+			printf("Runtime error\n");
 		} else {
-			printf("!erro na execução\n");
+			printf("No runtime error\n");
 		}
 		break;
-	case MOD_UNLOAD:
-		uprintf("Wasmodule KLD unloaded.\n");
+	case MOD_UNLOAD:            // kldunload
+		printf("=== Wasmodule KLD unloaded ===\n");
 		break;
 	default:
 		err = EOPNOTSUPP;
@@ -174,7 +173,6 @@ wasmodule_loader(struct module *m, int what, void *arg)
 }
 
 /* Declare this module to the rest of the kernel */
-
 static moduledata_t wasmodule_mod = {
 	"wasmodule",
 	wasmodule_loader,
@@ -182,4 +180,3 @@ static moduledata_t wasmodule_mod = {
 };
 
 DECLARE_MODULE(wasmodule, wasmodule_mod, SI_SUB_KLD, SI_ORDER_ANY);
-
