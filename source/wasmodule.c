@@ -117,7 +117,7 @@ int loader() {
     }
 
     env3 = m3_NewEnvironment();
-    if (!env2) {
+    if (!env3) {
         printf("Error creating the environment 3.\n");
         return 1;
     }
@@ -229,6 +229,8 @@ int loader() {
 		}
     }
 
+    printf("=============\n");
+
     uint32_t mem_size;
     uint8_t* memory = m3_GetMemory(runtime2, &mem_size, 0);
 
@@ -249,8 +251,8 @@ int loader() {
             result2 = m3_GetResultsV(func2, &func_return);
             // printf("get result\n");
             if (!result2) {
-                printf("Sum = 0x%x\n", *(int*)(memory + 400));
-                printf("Get = %d\n", func_return);
+                printf("memory + 400 = 0x%x\n", *(int*)(memory + 400));
+                printf("Get sum = %d\n", func_return);
             }
         }
     }
@@ -263,12 +265,26 @@ int loader() {
         if (result3) {
             printf("Error calling function array_get: %s\n", result3);
         } else {
-            int func_return;
+            int func_return, func_return2;
             result3 = m3_GetResultsV(array_get, &func_return);
-            // printf("get result\n");
+            int* array = (int*)(memory + func_return);
+
             if (!result3) {
                 printf("&array[0] = %d\n", func_return);
-                // printf("array[0] = %d\n", *func_return);
+                printf("array[0] =  %d\n", array[0]);
+                printf("array[1] =  %d\n", array[1]);
+                printf("array[2] =  %d\n", array[2]);
+                printf("array[3] =  %d\n", array[3]);
+
+                printf("=== array[3]++ ===\n");
+                array[3]++;
+                printf("array[3] = %d\n", array[3]);
+
+                ///////////////////////////
+
+                m3_CallV(func2);
+                m3_GetResultsV(func2, &func_return);
+                printf("Get sum = %d\n", func_return);
             }
         }
     }
@@ -277,9 +293,6 @@ int loader() {
        Note: The module is automatically freed when either the runtime or the environment are freed */
     m3_FreeRuntime(runtime);
     m3_FreeEnvironment(env);
-
-    // m3_FreeRuntime(runtime2);
-    // m3_FreeEnvironment(env2);
 
     return 0;
 }
