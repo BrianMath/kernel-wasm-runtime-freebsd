@@ -46,11 +46,12 @@ my_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb 
 	int src = ntohl(ip->ip_src.s_addr);
 	int dst = ntohl(ip->ip_dst.s_addr);
 
+	mtx_lock(&wasm_mtx);
+
 	if (funcIP == NULL || memoryIP == NULL) {
+		mtx_unlock(&wasm_mtx);
 		return PFIL_PASS;
 	}
-
-	mtx_lock(&wasm_mtx);
 
 	/* The function is called. m3_CallV accepts variable arguments based on the function signature */
 	resultIP = m3_CallV(funcIP, src, dst);
@@ -411,14 +412,20 @@ wasmodule_loader(struct module *m, int what, void *arg)
 	case MOD_UNLOAD:            // kldunload
 		printf("=== Wasmodule KLD unloaded ===\n");
 
-		// pfil_remove_hook(my_hook);
-		// printf("my_pfil: unloaded\n");
+		mtx_lock(&wasm_mtx);
+		pfil_remove_hook(my_hook);
+		printf("my_pfil: unloaded\n");
+
+		funcIP = NULL;
+		memoryIP = NULL;
 		
 		m3_FreeRuntime(runtime2);
 		m3_FreeEnvironment(env2);
 
 		m3_FreeRuntime(runtime3);
 		m3_FreeEnvironment(env3);
+
+		mtx_unlock(&wasm_mtx);
 
 		break;
 	default:
