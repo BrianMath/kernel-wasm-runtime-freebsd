@@ -6,6 +6,7 @@
 #include <sys/module.h>
 #include <sys/kernel.h>
 
+#include <sys/mutex.h>
 #include <sys/socket.h>
 #include <sys/mbuf.h>
 #include <net/if.h>
@@ -29,24 +30,53 @@ static IM3Environment env3;
 static IM3Runtime runtime3;
 static IM3Module module3;
 
+static IM3Environment envIP;
+static IM3Runtime runtimeIP;
+static IM3Module moduleIP;
+static IM3Function funcIP = NULL;
+static uint8_t* memoryIP = NULL;
+static M3Result resultIP;
+static struct mtx wasm_mtx;
+
 static pfil_return_t
 my_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
-	// Convert an mbuf pointer to a data pointer of the specified type
+	// Convert a mbuf pointer to a data pointer of the specified type
 	struct ip *ip = mtod(*mp, struct ip *);
-
 	// ntohl: big endian to little endian
 	int src = ntohl(ip->ip_src.s_addr);
 	int dst = ntohl(ip->ip_dst.s_addr);
-	printf("|pfil: src=%d.%d.%d.%d dst=%d.%d.%d.%d|\n",
-		(src & 0xFF000000) >> 24,
-		(src & 0x00FF0000) >> 16,
-		(src & 0x0000FF00) >> 8,
-		src & 0x000000FF,
-		(dst & 0xFF000000) >> 24,
-		(dst & 0x00FF0000) >> 16,
-		(dst & 0x0000FF00) >> 8,
-		dst & 0x000000FF
-	);
+
+	if (funcIP == NULL || memoryIP == NULL) {
+		return PFIL_PASS;
+	}
+
+	mtx_lock(&wasm_mtx);
+
+	/* The function is called. m3_CallV accepts variable arguments based on the function signature */
+	resultIP = m3_CallV(funcIP, src, dst);
+	if (resultIP) {
+		printf("Error calling function IP: %s\n", resultIP);
+	} else {
+		int func_return;
+		resultIP = m3_GetResultsV(funcIP, &func_return);
+		
+		if (!resultIP) {
+			printf("|pfil: %s|\n", (char*)(memoryIP + func_return));
+		}
+	}
+
+	mtx_unlock(&wasm_mtx);
+
+	// printf("|pfil: src=%d.%d.%d.%d dst=%d.%d.%d.%d|\n",
+	// 	(src & 0xFF000000) >> 24,
+	// 	(src & 0x00FF0000) >> 16,
+	// 	(src & 0x0000FF00) >> 8,
+	// 	src & 0x000000FF,
+	// 	(dst & 0xFF000000) >> 24,
+	// 	(dst & 0x00FF0000) >> 16,
+	// 	(dst & 0x0000FF00) >> 8,
+	// 	dst & 0x000000FF
+	// );
 
 	return PFIL_PASS;
 }
@@ -122,6 +152,12 @@ int loader() {
 		return 1;
 	}
 
+	envIP = m3_NewEnvironment();
+	if (!envIP) {
+		printf("Error creating the environment IP.\n");
+		return 1;
+	}
+
 	/* 2. Create runtime. The second argument is the stack size in bytes */
 	IM3Runtime runtime = m3_NewRuntime(env, 8192, NULL);
 	if (!runtime) {
@@ -141,6 +177,13 @@ int loader() {
 	if (!runtime3) {
 		printf("Error creating the runtime 3.\n");
 		m3_FreeEnvironment(env3);
+		return 1;
+	}
+
+	runtimeIP = m3_NewRuntime(envIP, 8192, NULL);
+	if (!runtimeIP) {
+		printf("Error creating the runtime IP.\n");
+		m3_FreeEnvironment(envIP);
 		return 1;
 	}
 
@@ -170,6 +213,14 @@ int loader() {
 		return 1;
 	}
 
+	resultIP = m3_ParseModule(envIP, &moduleIP, sum_mem_wasm, sum_mem_wasm_len);
+	if (resultIP) {
+		printf("Parsing error: %s\n", resultIP);
+		m3_FreeRuntime(runtimeIP);
+		m3_FreeEnvironment(envIP);
+		return 1;
+	}
+
 	/* 4. Load the module in runtime */
 	result = m3_LoadModule(runtime, module);
 	if (result) {
@@ -192,6 +243,14 @@ int loader() {
 		printf("Error loading module: %s\n", result3);
 		m3_FreeRuntime(runtime3);
 		m3_FreeEnvironment(env3);
+		return 1;
+	}
+
+	resultIP = m3_LoadModule(runtimeIP, moduleIP);
+	if (resultIP) {
+		printf("Error loading module: %s\n", resultIP);
+		m3_FreeRuntime(runtimeIP);
+		m3_FreeEnvironment(envIP);
 		return 1;
 	}
 
@@ -289,6 +348,37 @@ int loader() {
 		}
 	}
 
+	printf("=============\n");
+
+	uint32_t mem_size_ip;
+	memoryIP = m3_GetMemory(runtimeIP, &mem_size_ip, 0);
+
+	resultIP = m3_FindFunction(&funcIP, runtimeIP, "addr_ips");
+	if (resultIP) {
+		printf("Function addr_ips not found\n");
+		return 1;
+	}
+
+	// Initialize the mutex
+	mtx_init(&wasm_mtx, "wasm3 lock", NULL, MTX_DEF);
+
+	my_hook = pfil_add_hook(&pha);
+	pfil_link(&pla);
+	printf("my_pfil: loaded\n");
+
+	/* The function is called. m3_CallV accepts variable arguments based on the function signature */
+	// resultIP = m3_CallV(funcIP, 123456789, 987654321);
+	// if (resultIP) {
+	// 	printf("Error calling function IP: %s\n", resultIP);
+	// } else {
+	// 	int func_return;
+	// 	resultIP = m3_GetResultsV(funcIP, &func_return);
+		
+	// 	if (!resultIP) {
+	// 		printf("- %s\n", (char*)(memoryIP + func_return));
+	// 	}
+	// }
+
 	/* 7. Free allocated memory.
 	   Note: The module is automatically freed when either the runtime or the environment are freed */
 	m3_FreeRuntime(runtime);
@@ -313,16 +403,16 @@ wasmodule_loader(struct module *m, int what, void *arg)
 			printf("No runtime error\n");
 		}
 
-		//my_hook = pfil_add_hook(&pha);
-		//pfil_link(&pla);
-		//printf("my_pfil: loaded\n");
+		// my_hook = pfil_add_hook(&pha);
+		// pfil_link(&pla);
+		// printf("my_pfil: loaded\n");
 
 		break;
 	case MOD_UNLOAD:            // kldunload
 		printf("=== Wasmodule KLD unloaded ===\n");
 
-		//pfil_remove_hook(my_hook);
-		//printf("my_pfil: unloaded\n");
+		// pfil_remove_hook(my_hook);
+		// printf("my_pfil: unloaded\n");
 		
 		m3_FreeRuntime(runtime2);
 		m3_FreeEnvironment(env2);
