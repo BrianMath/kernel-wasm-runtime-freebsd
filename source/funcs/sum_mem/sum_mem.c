@@ -39,3 +39,7 @@ extern int addr_ips(int src, int dst) {
 
 	return (int)&ips[0];
 }
+
+extern int filter_ips(int src, int dst) {
+	return src != 0xC889DA82;
+}

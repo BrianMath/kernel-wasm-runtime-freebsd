@@ -34,6 +34,7 @@ static IM3Environment envIP;
 static IM3Runtime runtimeIP;
 static IM3Module moduleIP;
 static IM3Function funcIP = NULL;
+static IM3Function funcFilterIP = NULL;
 static uint8_t* memoryIP = NULL;
 static M3Result resultIP;
 static struct mtx wasm_mtx;
@@ -45,10 +46,13 @@ my_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb 
 	// ntohl: big endian to little endian
 	int src = ntohl(ip->ip_src.s_addr);
 	int dst = ntohl(ip->ip_dst.s_addr);
+	printf("src = 0x%X\ndst = 0x%X\n", src, dst);
+
+	int ret = PFIL_PASS;
 
 	mtx_lock(&wasm_mtx);
 
-	if (funcIP == NULL || memoryIP == NULL) {
+	if (funcIP == NULL || funcFilterIP == NULL || memoryIP == NULL) {
 		mtx_unlock(&wasm_mtx);
 		return PFIL_PASS;
 	}
@@ -66,20 +70,25 @@ my_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb 
 		}
 	}
 
+	resultIP = m3_CallV(funcFilterIP, src, dst);
+	if (resultIP) {
+		printf("Error calling function filter_ip: %s\n", resultIP);
+	} else {
+		int func_return;
+		resultIP = m3_GetResultsV(funcFilterIP, &func_return);
+		
+		if (!resultIP) {
+			printf("func return = %d\n", func_return);
+
+			if (func_return == 0) {
+				ret = PFIL_DROPPED;
+			}
+		}
+	}
+
 	mtx_unlock(&wasm_mtx);
 
-	// printf("|pfil: src=%d.%d.%d.%d dst=%d.%d.%d.%d|\n",
-	// 	(src & 0xFF000000) >> 24,
-	// 	(src & 0x00FF0000) >> 16,
-	// 	(src & 0x0000FF00) >> 8,
-	// 	src & 0x000000FF,
-	// 	(dst & 0xFF000000) >> 24,
-	// 	(dst & 0x00FF0000) >> 16,
-	// 	(dst & 0x0000FF00) >> 8,
-	// 	dst & 0x000000FF
-	// );
-
-	return PFIL_PASS;
+	return ret;
 }
 
 struct pfil_hook_args pha = {
@@ -360,6 +369,12 @@ int loader() {
 	resultIP = m3_FindFunction(&funcIP, runtimeIP, "addr_ips");
 	if (resultIP) {
 		printf("Function addr_ips not found\n");
+		return 1;
+	}
+
+	resultIP = m3_FindFunction(&funcFilterIP, runtimeIP, "filter_ips");
+	if (resultIP) {
+		printf("Function filter_ips not found\n");
 		return 1;
 	}
 
