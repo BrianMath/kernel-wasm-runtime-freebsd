@@ -73,6 +73,16 @@ kldstat
 dmesg
 ```
 
+- **Ping** anywhere with
+```bash
+ping google.com
+```
+
+- You can check the firewall working (not allowing the packages) with
+```bash
+ping ufg.br
+```
+
 - **Unload** the KLD from the kernel with
 ```bash
 task unload
