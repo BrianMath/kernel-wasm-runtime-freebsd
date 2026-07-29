@@ -16,7 +16,7 @@ tasks:
     vars:
       FUNC: '{{index .MATCH 0}}'
     cmds:
-      - cd {{.FUNCS_DIR}}/{{.FUNC}} && clang22 -O2 --target=wasm32 -mcpu=mvp -nostdinc -nostdlib -Wl,--no-entry -Wl,--export=addr_ips -Wl,--export=sum_get -Wl,--export=array_get -Wl,--import-memory sum_mem.c -o sum_mem.wasm
+      - cd {{.FUNCS_DIR}}/{{.FUNC}} && clang22 -O2 --target=wasm32 -mcpu=mvp -nostdinc -nostdlib -Wl,--no-entry -Wl,--export=addr_ips -Wl,--export=sum_get -Wl,--export=array_get sum_mem.c -o sum_mem.wasm
 
   header *:
     vars:

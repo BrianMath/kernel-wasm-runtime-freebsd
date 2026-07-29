@@ -130,6 +130,9 @@ m3ApiRawFunction(host_log) {
 }
 
 int loader() {
+	// Initialize the mutex
+	mtx_init(&wasm_mtx, "wasm3 lock", NULL, MTX_DEF);
+	
 	M3Result result;
 	M3Result result2;
 	M3Result result3;
@@ -225,7 +228,7 @@ int loader() {
 	/* 4. Load the module in runtime */
 	result = m3_LoadModule(runtime, module);
 	if (result) {
-		printf("Error loading module: %s\n", result);
+		printf("Error loading module 1: %s\n", result);
 		m3_FreeRuntime(runtime);
 		m3_FreeEnvironment(env);
 		return 1;
@@ -233,7 +236,7 @@ int loader() {
 	
 	result2 = m3_LoadModule(runtime2, module2);
 	if (result2) {
-		printf("Error loading module: %s\n", result2);
+		printf("Error loading module 2: %s\n", result2);
 		m3_FreeRuntime(runtime2);
 		m3_FreeEnvironment(env2);
 		return 1;
@@ -241,7 +244,7 @@ int loader() {
 
 	result3 = m3_LoadModule(runtime3, module3);
 	if (result3) {
-		printf("Error loading module: %s\n", result3);
+		printf("Error loading module 3: %s\n", result3);
 		m3_FreeRuntime(runtime3);
 		m3_FreeEnvironment(env3);
 		return 1;
@@ -249,7 +252,7 @@ int loader() {
 
 	resultIP = m3_LoadModule(runtimeIP, moduleIP);
 	if (resultIP) {
-		printf("Error loading module: %s\n", resultIP);
+		printf("Error loading module IP: %s\n", resultIP);
 		m3_FreeRuntime(runtimeIP);
 		m3_FreeEnvironment(envIP);
 		return 1;
@@ -359,9 +362,6 @@ int loader() {
 		printf("Function addr_ips not found\n");
 		return 1;
 	}
-
-	// Initialize the mutex
-	mtx_init(&wasm_mtx, "wasm3 lock", NULL, MTX_DEF);
 
 	my_hook = pfil_add_hook(&pha);
 	pfil_link(&pla);
