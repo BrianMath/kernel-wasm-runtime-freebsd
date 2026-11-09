@@ -1,0 +1,58 @@
+- `m3_api_kernel.c`: 
+  - Removed: `linux/printk.h`, `linux/string.h`, `linux/timekeeping.h`
+  - Modified: `m3ApiRawFunction(m3_kernel_time)`, `pr_info` -> `printf` 
+  - Included: `compat_kernel.h`, `sys/callout.h`
+- `m3_api_libc.c`:
+  - Removed: `linux/printk.h`
+  - Included: `compat_kernel.h`
+- `m3_api_uvwasi.c`:
+  - Removed: `stdio.h`, `string.h`
+  - Included: `compat_kernel.h`
+- `m3_api_wasi.c`:
+  - Removed: `sys/types.h`, `sys/stat.h`, `time.h`, `errno.h`, `stdio.h`, `fcntl.h`
+  - Included: `compat_kernel.h`
+- `m3_bind.c`:
+  - Removed: `linux/string.h`
+  - Modified: `static` before `M3Result  FindAndLinkFunction`
+  - Included: `compat_kernel.h`, `m3_bind.h`
+- `m3_code.c`:
+  - Removed: `linux/limits.h`, `linux/string.h`
+  - Included: `compat_kernel.h`
+- `m3_compile.c`:
+  - Removed: `linux/printk.h`
+  - Modified: `static` before `M3Result  AddTrapRecord`
+  - Included: `compat_kernel.h`
+- `m3_core.c`:
+  - Removed: `linux/string.h`, `linux/slab.h`, `time.h`
+  - Modified: `static` before `M3Result  AddTrapRecord`, `kcalloc (1, i_size, GFP_KERNEL)` -> `malloc(i_size, M_WASM3, M_WAITOK | M_ZERO)`, `krealloc(i_ptr, i_newSize, GFP_KERNEL)` -> `realloc(i_ptr, i_newSize, M_WASM3, M_WAITOK)`, `kfree (io_ptr)` -> `free(io_ptr, M_WASM3)`
+  - Included: `compat_kernel.h`, `MALLOC_DECLARE(M_WASM3)`, `MALLOC_DEFINE(M_WASM3, "wasm3", "wasm3 runtime memory")`
+- `m3_core.h`:
+  - Included: `sys/types.h`, `sys/systm.h`, `sys/errno.h`, `sys/param.h`, `sys/module.h`, `sys/kernel.h`
+- `m3_env.c`:
+  - Removed: `linux/stdarg.h`, `linux/limits.h`, `linux/string.h`, `linux/kernel.h`, `linux/slab.h`
+  - Modified: `pr_info` -> `printf`, `case c_m3Type_i32`, `case c_m3Type_i64`
+  - Included: `compat_kernel.h`
+- `m3_exec.h`:
+  - Removed: `linux/limits.h`, `linux/string.h`, `linux/kernel.h`
+  - Included: `compat_kernel.h`
+- `m3_exec_defs.h`:
+  - Removed: `linux/printk.h`
+- `m3_function.c`:
+  - Removed: `linux/string.h`
+  - Included: `compat_kernel.h`
+- `m3_info.c`:
+  - Removed: `linux/kernel.h`
+  - Included: `compat_kernel.h`
+- `m3_math_utils.h`:
+  - Removed: `linux/limits.h`
+- `m3_module.c`:
+  - Removed: `linux/printk.h`
+  - Included: `compat_kernel.h`
+- `m3_parse.c`:
+  - Removed: `linux/string.h`, `linux/printk.h`
+  - Included: `compat_kernel.h`
+- `wasm.h`:
+  - Removed: `linux/types.h`, `linux/stdarg.h`
+  - Included: `../../../../../usr/include/stdarg.h`, `sys/types.h`, `sys/systm.h`, `sys/errno.h`, `sys/param.h`, `sys/module.h`, `sys/kernel.h`
+- `compat_kernel.h`:
+  - Included: `sys/libkern.h`, `sys/types.h`, `sys/systm.h`, `sys/errno.h`, `sys/param.h`, `sys/module.h`, `sys/kernel.h`, `sys/malloc.h`, `sys/limits.h`, `sys/stdint.h`, `sys/time.h`, `machine/stdarg.h`
