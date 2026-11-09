@@ -1,6 +1,6 @@
 # Kernel Wasm Runtime for FreeBSD
 
-This repository was inspired by [Faisal-Saleh's kernel-wasm-runtime](https://github.com/Faisal-Saleh/kernel-wasm-runtime). Differently from them, this project focused on creating a **FreeBSD** loadable kernel module (KLD) that embeds a Wasm3 runtime.
+This repository was inspired by [Faisal-Saleh's kernel-wasm-runtime](https://github.com/Faisal-Saleh/kernel-wasm-runtime). Differently from them, this project focused on creating a **FreeBSD** loadable kernel module (KLD) that embeds a Wasm3 runtime. The full list of modifications can be found at `source/modifications.md`
 
 As an example, this project also implemented a simple firewall for IP packages coming from `ufg.br`.
 
